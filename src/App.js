@@ -49,8 +49,7 @@ function App() {
   const [scores, setScores] = useState({ player1: 0, player2: 0 });
   const [mistakes, setMistakes] = useState({ player1: 0, player2: 0 });
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [unmasked, setUnmasked] = useState(false);
-  const [currentGuess, setCurrentGuess] = useState(null); // {index, step: 1|2, guesses: []}
+  const [unmasked, setUnmasked] = useState(false);  const [currentGuess, setCurrentGuess] = useState(null); // {index, player1Guess: null, player2Guess: null}
 
   const startGame = () => {
     setTiles(getRandomTiles());
@@ -67,31 +66,44 @@ function App() {
 
   const handleTileClick = (index) => {
     if (gameOver || revealed[index] || !gameStarted || currentGuess) return;
-    setCurrentGuess({ index, step: 1, guesses: [] });
+    setCurrentGuess({ index, player1Guess: null, player2Guess: null });
   };
-
-  const handleGuess = (guess) => {
+  const handleGuess = (player, guess) => {
     if (!currentGuess) return;
-    const { index, step, guesses } = currentGuess;
-    const tileType = tiles[index];
-    let newGuesses = [...guesses, guess];
-    if (step === 1) {
-      setCurrentGuess({ index, step: 2, guesses: newGuesses });
-    } else if (step === 2) {
+    const { index } = currentGuess;
+    
+    const newCurrentGuess = { ...currentGuess };
+    if (player === 1) {
+      newCurrentGuess.player1Guess = guess;
+    } else {
+      newCurrentGuess.player2Guess = guess;
+    }
+    
+    setCurrentGuess(newCurrentGuess);
+    
+    // Check if both players have guessed
+    if (newCurrentGuess.player1Guess && newCurrentGuess.player2Guess) {
       // Both players have guessed, reveal tile
+      const tileType = tiles[index];
       const newRevealed = [...revealed];
       newRevealed[index] = true;
       setRevealed(newRevealed);
+      
       let newScores = { ...scores };
       let newMistakes = { ...mistakes };
-      if (newGuesses[0] === tileType) newScores.player1++;
+      
+      if (newCurrentGuess.player1Guess === tileType) newScores.player1++;
       else newMistakes.player1++;
-      if (newGuesses[1] === tileType) newScores.player2++;
+      
+      if (newCurrentGuess.player2Guess === tileType) newScores.player2++;
       else newMistakes.player2++;
+      
       setScores(newScores);
       setMistakes(newMistakes);
       setCurrentGuess(null);
+      
       if (soundEnabled) playSound(800, 0.1); // Reveal sound
+      
       // Check for game over
       const allRevealed = newRevealed.every(Boolean);
       if (allRevealed) {
@@ -129,6 +141,7 @@ function App() {
           Both players take turns guessing if a tile is chicken or banana. Each correct guess scores a point!
         </p>
       </div>
+      
       <div className="sound-toggle">
         <button 
           onClick={() => setSoundEnabled(!soundEnabled)}
@@ -137,16 +150,78 @@ function App() {
           🔊 Sound: {soundEnabled ? 'ON' : 'OFF'}
         </button>
       </div>
+      
       {!gameStarted && (
-        <div style={{margin: '24px 0'}}>
+        <div className="start-game-section">
           <button className="restart-button" onClick={startGame}>
             ▶️ Start Game
           </button>
         </div>
       )}
+      
       {gameStarted && (
-        <>
-          <div className="game-stats scoreboard">
+        <>          {currentGuess && (
+            <div className="guess-panel">
+              <div className="guess-panel-title">
+                Both players: Guess tile #{currentGuess.index + 1}!
+              </div>
+              <div className="simultaneous-guess">
+                <div className="player-guess-section">
+                  <div className="player-label">Player 1</div>
+                  <div className="guess-buttons">
+                    <button 
+                      onClick={() => handleGuess(1, 'chicken')}
+                      disabled={currentGuess.player1Guess !== null}
+                      className={currentGuess.player1Guess === 'chicken' ? 'selected' : ''}
+                    >
+                      🐔 Chicken
+                    </button>
+                    <button 
+                      onClick={() => handleGuess(1, 'banana')}
+                      disabled={currentGuess.player1Guess !== null}
+                      className={currentGuess.player1Guess === 'banana' ? 'selected' : ''}
+                    >
+                      🍌 Banana
+                    </button>
+                  </div>
+                  {currentGuess.player1Guess && (
+                    <div className="guess-status">✓ Guessed!</div>
+                  )}
+                </div>
+                
+                <div className="vs-divider">VS</div>
+                
+                <div className="player-guess-section">
+                  <div className="player-label">Player 2</div>
+                  <div className="guess-buttons">
+                    <button 
+                      onClick={() => handleGuess(2, 'chicken')}
+                      disabled={currentGuess.player2Guess !== null}
+                      className={currentGuess.player2Guess === 'chicken' ? 'selected' : ''}
+                    >
+                      🐔 Chicken
+                    </button>
+                    <button 
+                      onClick={() => handleGuess(2, 'banana')}
+                      disabled={currentGuess.player2Guess !== null}
+                      className={currentGuess.player2Guess === 'banana' ? 'selected' : ''}
+                    >
+                      🍌 Banana
+                    </button>
+                  </div>
+                  {currentGuess.player2Guess && (
+                    <div className="guess-status">✓ Guessed!</div>
+                  )}
+                </div>
+              </div>
+              
+              {currentGuess.player1Guess && currentGuess.player2Guess && (
+                <div className="reveal-message">Revealing tile...</div>
+              )}
+            </div>
+          )}
+          
+          <div className="scoreboard">
             <div className="score-card player1">
               <div className="score-title">Player 1</div>
               <div className="score-points">Score: <span className="score-num">{scores.player1}</span></div>
@@ -159,6 +234,7 @@ function App() {
               <div className="score-mistakes">Mistakes: <span className="mistake-num">{mistakes.player2}</span></div>
             </div>
           </div>
+          
           <div className="game-grid">
             {tiles.map((type, idx) => (
               <div key={idx} className="tile">
@@ -183,16 +259,8 @@ function App() {
               </div>
             ))}
           </div>
-          {currentGuess && (
-            <div className="guess-panel" style={{marginTop: 18, textAlign: 'center'}}>
-              <div style={{marginBottom: 8}}>
-                {currentGuess.step === 1 ? 'Player 1' : 'Player 2'}: Guess this tile!
-              </div>
-              <button onClick={() => handleGuess('chicken')} style={{marginRight: 12}}>🐔 Chicken</button>
-              <button onClick={() => handleGuess('banana')}>🍌 Banana</button>
-            </div>
-          )}
-          <div className="game-controls" style={{marginTop: 18}}>
+          
+          <div className="game-controls">
             <button 
               onClick={handleRestart}
               className="restart-button"
@@ -203,13 +271,13 @@ function App() {
               onClick={handleUnmask}
               className="unmask-button"
               disabled={unmasked}
-              style={{marginLeft: 8}}
             >
               👁️ Unmask All
             </button>
           </div>
         </>
       )}
+      
       {gameOver && (
         <div className={`game-over ${winner}`} style={{marginTop: 24}}>
           <h2 className={winner}>

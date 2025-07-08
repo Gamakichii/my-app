@@ -134,12 +134,8 @@ function App() {
   };
 
   return (
-    <div className="container">
-      <div className="header">
+    <div className="container">      <div className="header">
         <h1>🐔🍌 Chicken vs Banana Minesweeper</h1>
-        <p>
-          Both players take turns guessing if a tile is chicken or banana. Each correct guess scores a point!
-        </p>
       </div>
       
       <div className="sound-toggle">
@@ -167,21 +163,20 @@ function App() {
               </div>
               <div className="simultaneous-guess">
                 <div className="player-guess-section">
-                  <div className="player-label">Player 1</div>
-                  <div className="guess-buttons">
+                  <div className="player-label">Player 1</div>                  <div className="guess-buttons">
                     <button 
                       onClick={() => handleGuess(1, 'chicken')}
                       disabled={currentGuess.player1Guess !== null}
                       className={currentGuess.player1Guess === 'chicken' ? 'selected' : ''}
                     >
-                      🐔 Chicken
+                      🐔
                     </button>
                     <button 
                       onClick={() => handleGuess(1, 'banana')}
                       disabled={currentGuess.player1Guess !== null}
                       className={currentGuess.player1Guess === 'banana' ? 'selected' : ''}
                     >
-                      🍌 Banana
+                      🍌
                     </button>
                   </div>
                   {currentGuess.player1Guess && (
@@ -192,21 +187,20 @@ function App() {
                 <div className="vs-divider">VS</div>
                 
                 <div className="player-guess-section">
-                  <div className="player-label">Player 2</div>
-                  <div className="guess-buttons">
+                  <div className="player-label">Player 2</div>                  <div className="guess-buttons">
                     <button 
                       onClick={() => handleGuess(2, 'chicken')}
                       disabled={currentGuess.player2Guess !== null}
                       className={currentGuess.player2Guess === 'chicken' ? 'selected' : ''}
                     >
-                      🐔 Chicken
+                      🐔
                     </button>
                     <button 
                       onClick={() => handleGuess(2, 'banana')}
                       disabled={currentGuess.player2Guess !== null}
                       className={currentGuess.player2Guess === 'banana' ? 'selected' : ''}
                     >
-                      🍌 Banana
+                      🍌
                     </button>
                   </div>
                   {currentGuess.player2Guess && (
